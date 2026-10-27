@@ -1,4 +1,4 @@
-"""第 1 天练习：手写均值与描述统计。
+"""第 4 天练习：手写均值与描述统计。
 
 跑法（在 prob-sim 目录下，本机用 py 不要用 python）：
     py Practice/play.py
@@ -37,12 +37,20 @@ def one_d(n: int) -> float:
         data.append(random.random())
     sorted_data = sorted(data)
     best = 0.0
-    for i,u  in enumerate(sorted_data,start=1):
+    for i, u in enumerate(sorted_data, start=1):
         left = i/n - u
         right = u - (i-1)/n
         best = max(best,left,right)
     return best
 
+
+def simulate(n: int, m: int, seed: int | None = None) -> list[float]:
+    if seed is not None:
+        random.seed(seed)
+    result = []
+    for _ in range(m):
+        result.append(one_d(n))
+    return result
 
 
 def describe(data: list[float]) -> None:
@@ -61,10 +69,17 @@ def main() -> None:
     # describe(data)                                 # 期望 5 / 5 / 1
     # print(median([3, 1, 2]))
     # print(median([3, 1, 2, 4]))
-    # describe([100, 200])
-    print(one_d(10))
-    print(one_d(100))
-    print(one_d(1000))
+    # # describe([100, 200])
+    # print(one_d(10))
+    # print(one_d(100))
+    # print(one_d(1000))
+    xs = simulate(100, 1000, seed=123)
+    print("个数:", len(xs))
+    print("均值:", mean(xs))
+    print("中位数:", median(xs))
+    print("最大:", max(xs))
+    print("最小:", min(xs))
+
 
 if __name__ == "__main__":
     main()
