@@ -4,7 +4,8 @@
     py Practice/play.py
     py -m Practice.play
 """
-import random
+
+from prob_sim.ks import simulate
 
 
 def mean(data: list[float]) -> float:
@@ -29,28 +30,6 @@ def median(data: list[float]) -> float:
     if len(sorted_data) % 2 == 0:
         return (sorted_data[mid] + sorted_data[mid - 1]) / 2
     return sorted_data[mid]
-
-
-def one_d(n: int) -> float:
-    data = []
-    for _ in range(n):
-        data.append(random.random())
-    sorted_data = sorted(data)
-    best = 0.0
-    for i, u in enumerate(sorted_data, start=1):
-        left = i/n - u
-        right = u - (i-1)/n
-        best = max(best,left,right)
-    return best
-
-
-def simulate(n: int, m: int, seed: int | None = None) -> list[float]:
-    if seed is not None:
-        random.seed(seed)
-    result = []
-    for _ in range(m):
-        result.append(one_d(n))
-    return result
 
 
 def describe(data: list[float]) -> None:

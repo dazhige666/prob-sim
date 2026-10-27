@@ -7,43 +7,70 @@
 | 路径 | 职责 | 关键内容 |
 | --- | --- | --- |
 | `Practice/__init__.py` | 包标记 | 空文件，让 `Practice` 可被 import |
-| `Practice/play.py` | 第 1 天练习 | `mean(data)` 手写均值；`describe(data)` 打印个数/最大/最小；`main()` 跑示例 |
+| `Practice/play.py` | 第 1–4 天练习 | `mean` / `median` / `describe`；`main()` 调 `simulate` 打印统计量 |
 | `Practice/README.md` | 本文件 | 结构、跑法、坑、学习进度、改动记录 |
+| `prob_sim/__init__.py` | 包入口 | 导入 `ks`（触发注册）、导出 `REGISTRY` |
+| `prob_sim/base.py` | 接口定义 | `ParamSpec`（参数描述）、`Distribution`（名字 + 参数表 + 采样函数） |
+| `prob_sim/registry.py` | 分发表 | `REGISTRY: dict[str, Distribution]`，各分布模块导入时把自己塞进来 |
+| `prob_sim/ks.py` | K-S 分布 | `one_d(n)` 算一个 D；`simulate(n, m, seed)` 算 m 个；`ks_sample` 是注册表入口 |
 
-后续（按 10 天计划逐步加，现在还没有）：
-`prob_sim/base.py`、`prob_sim/registry.py`、`prob_sim/ks.py`、`cli.py`。
+后续（还没有）：`cli.py`（命令行 + JSON 落盘）、Gamma / Laplace / Cauchy 模块。
 
 ## 运行方式
 
-在 `prob-sim` 目录下：
+**所有命令都在 `prob-sim` 目录下执行**（`py -m` 的形式要求当前目录在 `sys.path` 里）：
 
 ```bash
-py Practice/play.py
-# 或
+# 练习脚本：必须用 -m，直接 py Practice/play.py 会因为找不到 prob_sim 包而报错
 py -m Practice.play
+
+# 包级冒烟测试
+py -c "from prob_sim import REGISTRY; print(list(REGISTRY))"          # ['ks']
+py -c "from prob_sim.ks import simulate; print(len(simulate(50, 10)))"  # 10
 ```
 
 > 注意：这台机器上的 `python` 是 Microsoft Store 的占位程序，运行时静默退出（exit code 49）。
 > 统一用 `py`（Python Launcher）调用。若控制台中文显示成乱码，先执行 `chcp 65001`。
 
-期望输出：
+`py -m Practice.play` 的期望输出（seed=123，n=100，m=1000）：
 
 ```
-平均值: 3.0
-另一组平均值: 35.0
-个数: 5
-最大: 5
-最小: 1
+个数: 1000
+均值: 0.08668
+中位数: 0.08220
+最大: 0.22113
+最小: 0.03297
 ```
+
+## 对外接口
+
+```python
+from prob_sim.ks import one_d, simulate
+
+one_d(n: int) -> float
+# 抽 n 个 U(0,1)，返回一个 K-S 统计量 D。n ≥ 1。D ∈ (0, 1)。
+
+simulate(n: int, m: int, seed: int | None = None) -> list[float]
+# 重复 m 次 one_d(n)，返回长度 m 的列表。
+# seed 不为 None 时结果可复现：同 seed 两次调用逐项相同。
+
+ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
+# registry 统一签名；params 里必须有 "n"（样本量）。
+```
+
+`REGISTRY["ks"]` 是 `Distribution(name="ks", params=[ParamSpec("n", 100)], sampler=ks_sample)`。
 
 ## 坑与约束
 
 - **不能用 numpy**：这是作业硬要求，全部用标准库（`random`、`math`、`statistics`）。
 - **用 `py` 不用 `python`**：`python` 命中 Store 占位程序，静默退出（exit 49）；`py` 正常。
+- **练习脚本只能用 `py -m Practice.play` 跑**：直接 `py Practice/play.py` 时 `sys.path[0]` 是 `Practice/`，看不到同级的 `prob_sim/`，会 `ModuleNotFoundError`。不要用 `sys.path.append` 打补丁。
 - 包名 `Practice` 首字母大写是用户指定的写法，不按 PEP 8 小写惯例，别改。
+- 包目录名是 `prob_sim`（下划线），仓库目录名是 `prob-sim`（连字符）——连字符不能出现在 `import` 语句里。
 - 目录名用纯英文（`prob-sim`），避免中文路径在打包/命令行里出乱码。
 - Windows 下读文件要写 `encoding="utf-8"`，写 JSON 同理。
-- 作业里所有分发/采样逻辑都放在模块顶层函数里，模块级不要写会打印的代码（`import` 时会执行）。
+- 采样逻辑只放模块顶层函数，模块级不要写会打印的代码（`import` 时会执行）。
+- `prob_sim/base.py` 不能 import `registry` 或 `ks`，否则循环导入。
 
 ## 学习进度
 
@@ -59,10 +86,49 @@ py -m Practice.play
 4. **模块级 `print` 会在 `import` 时执行**：第 5 天拆包时统一包进 `if __name__ == "__main__":`。
 
 **验证**：`describe([100, 200])` 输出 `2 / 200 / 100`，证明参数真的生效，而不是在读全局变量。
-**下一步**：第 2 天给 `describe` 加"中位数"——`sorted(data)` 排序 + `len(data) // 2` 取中间。
+
+### 第 2 天（2026-10-24）：中位数
+
+**学了**：`sorted()` 返回新列表、`//` 整除、奇偶分支、`if/return` 早退出（不再写多余的 `else`）。
+**写了**：`median(data)`，偶数个取中间两个的平均；`describe` 加一行输出。
+**验证**：`median([3,1,2]) == 2.0`、`median([4,1,3,2]) == 2.5`、`describe([100,200])` 出 150.0。
+
+### 第 3 天（2026-10-25）：一个 D
+
+**学了**：`random.random()` 产生 U(0,1)、`enumerate(..., start=1)` 让序号从 1 开始、循环里用 `best = max(best, left, right)` 累积最大值。
+**写了**：`one_d(n)`。
+**踩过的坑**：
+
+1. **`max = 0.0` 覆盖内置 `max()`**：改用 `best`。
+2. **`max = right` 无条件执行**：把上一轮存下的 `left` 冲掉，等价于只取最后一个点。改用 `best = max(best, left, right)`。
+3. **`best = ...` 少缩进 4 格**：语句跑到 `for` 外面，循环里什么也没累积。Python 靠缩进划分代码块。
+
+**验证**：每个 n 跑 2000 次取中位数——n=10/100/1000 得 0.2458/0.0826/0.0260，与理论值 0.83/√n 吻合；结果恒为正且 < 1。
+
+### 第 4 天（2026-10-26）：重复 m 次
+
+**学了**：`seed: int | None = None` 联合类型注解、默认参数、`random.seed()` 必须在抽数之前、列表累积两种写法（append / 推导式）。
+**写了**：`simulate(n, m, seed)`。
+**踩过的坑**：`[one_d(n)] * m` 只调用一次再复制，m 个值全相同；`random.seed(seed)` 放进循环会导致每次重置同一串随机数。
+**验证**：同 seed 两次结果逐项相同；换 seed 不同；n=100 的 m=1000 个 D 中位数 0.0825 ≈ 0.83/√100。
+
+### 第 5 天（2026-10-27）：拆包
+
+**学了**：包 = 带 `__init__.py` 的目录；`import` 靠 `sys.path` 找模块，直接跑脚本时 `sys.path[0]` 是脚本所在目录；`@dataclass` 自动生成 `__init__`/`__repr__`；注册表模式（模块导入时把自己的采样器登记进 `REGISTRY`，调用方只认名字）。
+**写了**：`prob_sim/` 四个文件；`ks.py` 末尾登记 `REGISTRY["ks"]`；`play.py` 改为从包里 import。
+**踩过的坑**：
+
+1. **文件建在仓库根**：`base.py`/`ks.py` 必须是 `prob_sim/` 目录里的文件，否则 `from prob_sim.ks import ...` 找不到。
+2. **`_init_.py` 拼写**：`__init__.py` 前后各两个下划线，少一个就不算包标记。
+3. **根目录残留 `__init__.py`**：会把整个仓库根当成包，导入路径混乱。
+4. **`from prob_sim import REGISTRY` 报 ImportError**：空的 `__init__.py` 不会导出子模块里的名字，要在 `__init__.py` 里显式 `from prob_sim.registry import REGISTRY`。
+
+**验证**：`list(REGISTRY) == ['ks']`；`len(simulate(50, 10, seed=1)) == 10`；`py -m Practice.play` 输出五行统计。
 
 ## 改动记录
 
 - 2026-10-23：创建 `prob-sim/Practice/`，写第 1 天练习 `play.py`（`mean` / `describe`），跑通输出 3.875。
 - 2026-10-23：用户手写 `play.py` 完成第 1 天任务；`mean`/`describe` 已改为使用参数而非全局变量，`describe([100,200])` 验证输出 2/200/100。
 - 2026-10-23：按约定重写 `play.py`——补 docstring、类型注解、`main()` 入口、`if __name__ == "__main__"` 保护，统一命名与空格；行为不变。
+- 2026-10-27：第 2 天加 `median()`；第 3 天加 `one_d()`；第 4 天加 `simulate()`（均用户手写，我审校）。
+- 2026-10-27：第 5 天拆出 `prob_sim/` 包（`__init__` / `base` / `registry` / `ks`）；修 `__init__.py` 未导出 `REGISTRY`、`ks.py` 导入位置与空格；README 补齐接口、运行方式与第 2–5 天学习进度。
