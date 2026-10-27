@@ -4,6 +4,7 @@
     py Practice/play.py
     py -m Practice.play
 """
+import random
 
 
 def mean(data: list[float]) -> float:
@@ -30,6 +31,20 @@ def median(data: list[float]) -> float:
     return sorted_data[mid]
 
 
+def one_d(n: int) -> float:
+    data = []
+    for _ in range(n):
+        data.append(random.random())
+    sorted_data = sorted(data)
+    best = 0.0
+    for i,u  in enumerate(sorted_data,start=1):
+        left = i/n - u
+        right = u - (i-1)/n
+        best = max(best,left,right)
+    return best
+
+
+
 def describe(data: list[float]) -> None:
     """打印 data 的个数、最大值、最小值、中位数。"""
     print("个数:", len(data))
@@ -44,9 +59,12 @@ def main() -> None:
     # print("平均值:", mean(data))                    # 期望 3.0
     # print("另一组平均值:", mean([20, 30, 40, 50]))  # 期望 35.0
     # describe(data)                                 # 期望 5 / 5 / 1
-    print(median([3, 1, 2]))
-    print(median([3, 1, 2, 4]))
-    describe([100, 200])
+    # print(median([3, 1, 2]))
+    # print(median([3, 1, 2, 4]))
+    # describe([100, 200])
+    print(one_d(10))
+    print(one_d(100))
+    print(one_d(1000))
 
 if __name__ == "__main__":
     main()
