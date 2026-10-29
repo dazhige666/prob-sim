@@ -125,6 +125,18 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 
 **验证**：`list(REGISTRY) == ['ks']`；`len(simulate(50, 10, seed=1)) == 10`；`py -m Practice.play` 输出五行统计。
 
+### 第 8 天（待做）：mypy 静态检查 + 变量可视化
+
+**任务**：
+
+1. 装：`py -m pip install mypy`（联网装到用户目录，不动系统 Python）
+2. 跑：`py -m mypy prob_sim`
+3. 看报错：mypy 会输出 `error: Argument 1 to "..." has incompatible type "..."` 并带行号指向问题——这就是 Python 版的「编译期报错」
+4. 修到 `Success: no issues found in N source files`
+5. **可视化**：把 `one_d(4)` 的代码贴进 https://pythontutor.com ，单步执行，看 `sorted_data` 和 `best` 每一轮怎么变
+
+**为什么要做**：Python 默认只在运行到那一行时才检查类型，mypy 把这件事提前到「写完就能查」。初学者看一次「注解写错 → 工具精确指出哪一行哪个参数」，对类型系统的理解会比读十页文档都实感。
+
 ## 改动记录
 
 - 2026-10-23：创建 `prob-sim/Practice/`，写第 1 天练习 `play.py`（`mean` / `describe`），跑通输出 3.875。
@@ -132,3 +144,4 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 - 2026-10-23：按约定重写 `play.py`——补 docstring、类型注解、`main()` 入口、`if __name__ == "__main__"` 保护，统一命名与空格；行为不变。
 - 2026-10-27：第 2 天加 `median()`；第 3 天加 `one_d()`；第 4 天加 `simulate()`（均用户手写，我审校）。
 - 2026-10-27：第 5 天拆出 `prob_sim/` 包（`__init__` / `base` / `registry` / `ks`）；修 `__init__.py` 未导出 `REGISTRY`、`ks.py` 导入位置与空格；README 补齐接口、运行方式与第 2–5 天学习进度。
+- 2026-10-29：加入第 8 天任务（mypy 静态检查 + pythontutor 变量可视化），排在第 6–7 天（cli + 校验）之后。
