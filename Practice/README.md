@@ -125,6 +125,21 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 
 **验证**：`list(REGISTRY) == ['ks']`；`len(simulate(50, 10, seed=1)) == 10`；`py -m Practice.play` 输出五行统计。
 
+### 第 6 天（2026-10-29）：cli + JSON 落盘
+
+**学了**：`argparse` 的选项 vs 位置参数、`--x` 去掉横线才是属性名、`dest` 改属性名、`parse_args()` 返回 `Namespace`、`json.dump` + `encoding="utf-8"` + `ensure_ascii=False`、`os.path.dirname` 对纯文件名返回空字符串。
+
+**写了**：`cli.py` —— `main()` 里五步：取 `REGISTRY["ks"]` → 解析四参数 → 调 `sampler` → 建目录 → 写 JSON。
+
+**踩过的坑**：
+
+1. **`print(parser)` 看不到解析结果**：`args = parser.parse_args()` 那一行才产生 `args`；打印 `parser` 只会得到解析器对象。
+2. **`--n` 和 `n` 不是一回事**：注册时带横线是选项（`--n 50`），不带是位置参数（`50`），后者传 `--n` 会 `unrecognized arguments`。
+3. **`--out ks.json` 时 `dirname` 返回 `""`**：`os.makedirs("")` 抛 `FileNotFoundError`，要先 `if out_dir:`。
+4. **`mian` 拼成 `main` 的笔误**：两处一致所以不报错，但 `from cli import main` 会失败。
+
+**验证**：`py cli.py --n 100 --count 1000 --seed 42` 生成 `out/ks.json`，五键齐全、`samples` 长度 1000；`--out bare.json` 不崩；同 seed 两次 `samples` 逐项相同。
+
 ### 第 8 天（待做）：mypy 静态检查 + 变量可视化
 
 **任务**：
@@ -145,3 +160,4 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 - 2026-10-27：第 2 天加 `median()`；第 3 天加 `one_d()`；第 4 天加 `simulate()`（均用户手写，我审校）。
 - 2026-10-27：第 5 天拆出 `prob_sim/` 包（`__init__` / `base` / `registry` / `ks`）；修 `__init__.py` 未导出 `REGISTRY`、`ks.py` 导入位置与空格；README 补齐接口、运行方式与第 2–5 天学习进度。
 - 2026-10-29：加入第 8 天任务（mypy 静态检查 + pythontutor 变量可视化），排在第 6–7 天（cli + 校验）之后。
+- 2026-10-29：第 6 天 `cli.py`（argparse + JSON 落盘）；注释补齐六步流程，修 `mian`→`main`、default 改从 `dist.params` 取。
