@@ -30,7 +30,7 @@ py -c "from prob_sim.ks import simulate; print(len(simulate(50, 10)))"  # 10
 ```
 
 > 注意：这台机器上的 `python` 是 Microsoft Store 的占位程序，运行时静默退出（exit code 49）。
-> 统一用 `py`（Python Launcher）调用。若控制台中文显示成乱码，先执行 `chcp 65001`。
+> 统一用 `py`（Python Launcher）调用。`cli.py` 在 `main()` 开头会把 stdout/stderr 切成 UTF-8（等价 `chcp 65001`），管道、重定向、Git Bash 里中文都不乱码；其他脚本若乱码，先执行 `chcp 65001`。
 
 `py -m Practice.play` 的期望输出（seed=123，n=100，m=1000）：
 
@@ -140,6 +140,18 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 
 **验证**：`py cli.py --n 100 --count 1000 --seed 42` 生成 `out/ks.json`，五键齐全、`samples` 长度 1000；`--out bare.json` 不崩；同 seed 两次 `samples` 逐项相同。
 
+### 第 7 天（2026-10-31）：参数校验 + 输出编码
+
+**学了**：`parser.error()` 与 `raise` 的区别（前者打印 usage、退出码 2、无 traceback）、`sys.stdout.reconfigure()` 改流编码、fail fast（解析完立刻校验，别算完才发现）。
+**写了**：`cli.py` 加两条 `if args.n < 1` / `if args.count < 1` 校验；`force_utf8_output()` 统一输出编码。
+**踩过的坑**：
+
+1. **提示文案和条件不一致**：条件是 `< 1`（允许 1），文案写「必须大于1」（暗示 1 不行）。文案要能复述条件本身。
+2. **`if args.n < 1 :` 冒号前多空格**（PEP 8 E203）。
+3. **管道里中文乱码**：不是代码错，是流的编码（GBK）和内容（UTF-8）不匹配；`reconfigure(encoding="utf-8")` 解决。
+
+**验证**：`--n 0` / `--n -5` / `--count 0` / `--n abc` 全部退出码 2，`--n 1 --count 1` 正常放行；正常命令照常出 JSON。
+
 ### 第 8 天（待做）：mypy 静态检查 + 变量可视化
 
 **任务**：
@@ -161,3 +173,4 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 - 2026-10-27：第 5 天拆出 `prob_sim/` 包（`__init__` / `base` / `registry` / `ks`）；修 `__init__.py` 未导出 `REGISTRY`、`ks.py` 导入位置与空格；README 补齐接口、运行方式与第 2–5 天学习进度。
 - 2026-10-29：加入第 8 天任务（mypy 静态检查 + pythontutor 变量可视化），排在第 6–7 天（cli + 校验）之后。
 - 2026-10-29：第 6 天 `cli.py`（argparse + JSON 落盘）；注释补齐六步流程，修 `mian`→`main`、default 改从 `dist.params` 取。
+- 2026-10-31：第 7 天参数校验（`parser.error`，退出码 2）；加 `force_utf8_output()` 修管道中文乱码；README 补第 7 天进度。
