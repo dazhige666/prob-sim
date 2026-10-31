@@ -33,8 +33,13 @@ py -c "from prob_sim import REGISTRY; print(list(REGISTRY))"          # ['ks']
 py -c "from prob_sim.ks import simulate; print(len(simulate(50, 10)))"  # 10
 ```
 
-> 注意：这台机器上的 `python` 是 Microsoft Store 的占位程序，运行时静默退出（exit code 49）。
-> 统一用 `py`（Python Launcher）调用。`cli.py` 在 `main()` 开头会把 stdout/stderr 切成 UTF-8（等价 `chcp 65001`），管道、重定向、Git Bash 里中文都不乱码；其他脚本若乱码，先执行 `chcp 65001`。
+> 解释器说明（2026-10-31 更新）：本机 `python` 现在就是真的 Python 3.14 —— `PATH` 已把
+> `C:\Users\lizhi\AppData\Local\Programs\Python\Python314\`（及 `Scripts\`）放到最前，
+> `WindowsApps` 下那两个 0 字节的 Store 别名（`python.exe` / `python3.exe`）已删除。
+> 所以 `python`、`py`、`pip`、`mypy` 都能直接用；本文档保留 `py` 写法（多版本时可 `py -3.14` 明确指定）。
+> 原 PATH 备份：`E:\Probability Distribution Visualization Tool\path-backup-2026-10-31.txt`。
+>
+> `cli.py` 在 `main()` 开头会把 stdout/stderr 切成 UTF-8（等价 `chcp 65001`），管道、重定向、Git Bash 里中文都不乱码；其他脚本若乱码，先执行 `chcp 65001`。
 
 `py -m Practice.play` 的期望输出（seed=123，n=100，m=1000）：
 
@@ -183,3 +188,4 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 - 2026-10-29：第 6 天 `cli.py`（argparse + JSON 落盘）；注释补齐六步流程，修 `mian`→`main`、default 改从 `dist.params` 取。
 - 2026-10-31：第 7 天参数校验（`parser.error`，退出码 2）；加 `force_utf8_output()` 修管道中文乱码；README 补第 7 天进度。
 - 2026-10-31：第 8 天 `test_ks.py`（三个断言，变异测试确认有效）；mypy 2.4.1；`--strict` 逼出 `ks.py:43` 的 `dict` 缺参数并修成 `dict[str, int]`。
+- 2026-10-31：解释器环境修复——用户 PATH 前置 Python314 目录、删除 WindowsApps 里的 Store 别名；README 同步说明。
