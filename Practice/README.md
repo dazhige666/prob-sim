@@ -15,8 +15,10 @@
 | `prob_sim/base.py` | 接口定义 | `ParamSpec`（参数描述）、`Distribution`（名字 + 参数表 + 采样函数） |
 | `prob_sim/registry.py` | 分发表 | `REGISTRY: dict[str, Distribution]`，各分布模块导入时把自己塞进来 |
 | `prob_sim/ks.py` | K-S 分布 | `one_d(n)` 算一个 D；`simulate(n, m, seed)` 算 m 个；`ks_sample` 是注册表入口 |
+| `cli.py` | 命令行入口 | `main()` 七步：取分布 → 声明参数 → 校验 → 采样 → 建目录 → 组装 → 写 JSON |
+| `test_ks.py` | 测试 | 三个断言：D 在 [0,1]、中位数接近 0.83/√n、同 seed 可复现 |
 
-后续（还没有）：`cli.py`（命令行 + JSON 落盘）、Gamma / Laplace / Cauchy 模块。
+待做：`demo_flask.py` / `demo_xml.py`（第 9 天预习）、Gamma / Laplace / Cauchy 模块（第二阶段）。
 
 ## 运行方式
 
@@ -154,17 +156,21 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 
 **验证**：`--n 0` / `--n -5` / `--count 0` / `--n abc` 全部退出码 2，`--n 1 --count 1` 正常放行；正常命令照常出 JSON。
 
-### 第 8 天（待做）：mypy 静态检查 + 变量可视化
+### 第 8 天（2026-10-31 完成）：测试 + mypy
 
-**任务**：
+**A. 测试 `test_ks.py`**：三个断言——D 全在 [0,1]、中位数落在 0.83/√50 的 ±30%、`simulate(50, 2000, seed=42)` 两次逐项相等。做了变异测试（把阈值改成 `median > 0.5`）确认断言真的会炸。
 
-1. 装：`py -m pip install mypy`（联网装到用户目录，不动系统 Python）
-2. 跑：`py -m mypy prob_sim`
-3. 看报错：mypy 会输出 `error: Argument 1 to "..." has incompatible type "..."` 并带行号指向问题——这就是 Python 版的「编译期报错」
-4. 修到 `Success: no issues found in N source files`
-5. **可视化**：把 `one_d(4)` 的代码贴进 https://pythontutor.com ，单步执行，看 `sorted_data` 和 `best` 每一轮怎么变
+**B. mypy**：`py -m pip install mypy`（2.4.1）→ `py -m mypy prob_sim` 一次 `Success`；但那是注解宽松的结果，`--strict` 才逼出一条真问题：
 
-**为什么要做**：Python 默认只在运行到那一行时才检查类型，mypy 把这件事提前到「写完就能查」。初学者看一次「注解写错 → 工具精确指出哪一行哪个参数」，对类型系统的理解会比读十页文档都实感。
+```
+prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-arg]
+```
+
+改成 `dict[str, int]` 后 `--strict` 也 `Success: no issues found in 4 source files`。
+
+**学到的一件事**：mypy 普通模式通过 ≠ 类型没问题，它只查你标注出来的部分；`--strict` 才把容器的元素类型也纳入检查。
+
+**未做（可选）**：pythontutor 单步 `one_d(4)`。
 
 ## 改动记录
 
@@ -176,3 +182,4 @@ ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
 - 2026-10-29：加入第 8 天任务（mypy 静态检查 + pythontutor 变量可视化），排在第 6–7 天（cli + 校验）之后。
 - 2026-10-29：第 6 天 `cli.py`（argparse + JSON 落盘）；注释补齐六步流程，修 `mian`→`main`、default 改从 `dist.params` 取。
 - 2026-10-31：第 7 天参数校验（`parser.error`，退出码 2）；加 `force_utf8_output()` 修管道中文乱码；README 补第 7 天进度。
+- 2026-10-31：第 8 天 `test_ks.py`（三个断言，变异测试确认有效）；mypy 2.4.1；`--strict` 逼出 `ks.py:43` 的 `dict` 缺参数并修成 `dict[str, int]`。

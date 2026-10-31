@@ -40,7 +40,7 @@ def simulate(n: int, m: int, seed: int | None = None) -> list[float]:
     return result
 
 
-def ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]:
+def ks_sample(params: dict[str,int], count: int, seed: int | None = None) -> list[float]:
     """registry 的统一入口：参数字典 + 个数 + 种子。"""
     return simulate(int(params["n"]), count, seed)
 
