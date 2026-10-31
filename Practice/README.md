@@ -189,3 +189,4 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 - 2026-10-31：第 7 天参数校验（`parser.error`，退出码 2）；加 `force_utf8_output()` 修管道中文乱码；README 补第 7 天进度。
 - 2026-10-31：第 8 天 `test_ks.py`（三个断言，变异测试确认有效）；mypy 2.4.1；`--strict` 逼出 `ks.py:43` 的 `dict` 缺参数并修成 `dict[str, int]`。
 - 2026-10-31：解释器环境修复——用户 PATH 前置 Python314 目录、删除 WindowsApps 里的 Store 别名；README 同步说明。
+- 2026-11-01：一期收尾——全链路回归（n=50 / n=1000 的 D 中位数与 0.83/√n 吻合）、补项目级 `README.md`（文件地图/接口/坑/三个待解问题）、打 tag `v0.1.0`。第 9 天 `demo_flask.py` / `demo_xml.py` 未写（预习性质，不算交付）。

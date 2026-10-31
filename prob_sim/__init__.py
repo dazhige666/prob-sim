@@ -7,3 +7,7 @@
 
 from prob_sim import ks  # noqa: F401  导入即注册，别删
 from prob_sim.registry import REGISTRY  # noqa: F401
+
+# mypy --strict 打开了 no-implicit-reexport：显式声明这是对外公开的名字，
+# 这样 `from prob_sim import REGISTRY` 才不会被判成 attr-defined 错误。
+__all__ = ["REGISTRY"]

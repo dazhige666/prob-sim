@@ -36,10 +36,11 @@ def force_utf8_output() -> None:
     某些被替换过的 stream 没有 reconfigure（或被关闭），跳过即可。
     """
     for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8")
-        except (AttributeError, ValueError):
-            pass
+        # 用 getattr 取方法：mypy --strict 下 TextIO 不保证有 reconfigure，
+        # 某些被替换过的流本来就没有。
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
 
 
 def main() -> None:
