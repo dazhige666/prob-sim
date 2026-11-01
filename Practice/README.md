@@ -1,47 +1,25 @@
-# prob-sim
+# prob-sim · Practice（练习区）
 
-概率分布模拟与可视化（课程项目）。当前阶段：个人作业 **K-S 分布**的样本点模拟，纯标准库实现（禁止 numpy）。
+学习过程记录，**不属于交付物**。项目本身的说明见 [../README.md](../README.md)。
 
-> **这里是学习草稿，不属于交付物。** `Practice/` 下可以随便改、随便删；交付代码是 `prob_sim/` + `cli.py`。
+## 这个目录是什么
 
-## 文件地图
+练习草稿区，不算交付物：
 
-| 路径 | 职责 | 关键内容 |
-| --- | --- | --- |
-| `Practice/__init__.py` | 包标记 | 空文件，让 `Practice` 可被 import |
-| `Practice/play.py` | 第 1–4 天练习 | `mean` / `median` / `describe`；`main()` 调 `simulate` 打印统计量 |
-| `Practice/README.md` | 本文件 | 结构、跑法、坑、学习进度、改动记录 |
-| `prob_sim/__init__.py` | 包入口 | 导入 `ks`（触发注册）、导出 `REGISTRY` |
-| `prob_sim/base.py` | 接口定义 | `ParamSpec`（参数描述）、`Distribution`（名字 + 参数表 + 采样函数） |
-| `prob_sim/registry.py` | 分发表 | `REGISTRY: dict[str, Distribution]`，各分布模块导入时把自己塞进来 |
-| `prob_sim/ks.py` | K-S 分布 | `one_d(n)` 算一个 D；`simulate(n, m, seed)` 算 m 个；`ks_sample` 是注册表入口 |
-| `cli.py` | 命令行入口 | `main()` 七步：取分布 → 声明参数 → 校验 → 采样 → 建目录 → 组装 → 写 JSON |
-| `test_ks.py` | 测试 | 三个断言：D 在 [0,1]、中位数接近 0.83/√n、同 seed 可复现 |
+- `play.py` —— 第 1–4 天练习（`mean` / `median` / `describe`）
+- `gamma.py` —— 第 5 天的声明草稿（函数体 `raise NotImplementedError`）
 
-待做：`demo_flask.py` / `demo_xml.py`（第 9 天预习）、Gamma / Laplace / Cauchy 模块（第二阶段）。
+交付代码在上一层（`prob_sim/` + `cli.py`）；**文件地图、对外接口、运行方式、项目级坑**都在 [../README.md](../README.md)，这里不重复。
 
-## 运行方式
+## 跑练习
 
-**所有命令都在 `prob-sim` 目录下执行**（`py -m` 的形式要求当前目录在 `sys.path` 里）：
+必须用 `-m`，且当前目录是 `prob-sim/`（直接 `py Practice/play.py` 会因为找不到 `prob_sim` 包报错）：
 
 ```bash
-# 练习脚本：必须用 -m，直接 py Practice/play.py 会因为找不到 prob_sim 包而报错
 py -m Practice.play
-
-# 包级冒烟测试
-py -c "from prob_sim import REGISTRY; print(list(REGISTRY))"          # ['ks']
-py -c "from prob_sim.ks import simulate; print(len(simulate(50, 10)))"  # 10
 ```
 
-> 解释器说明（2026-10-31 更新）：本机 `python` 现在就是真的 Python 3.14 —— `PATH` 已把
-> `C:\Users\lizhi\AppData\Local\Programs\Python\Python314\`（及 `Scripts\`）放到最前，
-> `WindowsApps` 下那两个 0 字节的 Store 别名（`python.exe` / `python3.exe`）已删除。
-> 所以 `python`、`py`、`pip`、`mypy` 都能直接用；本文档保留 `py` 写法（多版本时可 `py -3.14` 明确指定）。
-> 原 PATH 备份：`E:\Probability Distribution Visualization Tool\path-backup-2026-10-31.txt`。
->
-> `cli.py` 在 `main()` 开头会把 stdout/stderr 切成 UTF-8（等价 `chcp 65001`），管道、重定向、Git Bash 里中文都不乱码；其他脚本若乱码，先执行 `chcp 65001`。
-
-`py -m Practice.play` 的期望输出（seed=123，n=100，m=1000）：
+期望输出（`seed=123`，`n=100`，`m=1000`）：
 
 ```
 个数: 1000
@@ -51,35 +29,11 @@ py -c "from prob_sim.ks import simulate; print(len(simulate(50, 10)))"  # 10
 最小: 0.03297
 ```
 
-## 对外接口
+## 练习区约定
 
-```python
-from prob_sim.ks import one_d, simulate
-
-one_d(n: int) -> float
-# 抽 n 个 U(0,1)，返回一个 K-S 统计量 D。n ≥ 1。D ∈ (0, 1)。
-
-simulate(n: int, m: int, seed: int | None = None) -> list[float]
-# 重复 m 次 one_d(n)，返回长度 m 的列表。
-# seed 不为 None 时结果可复现：同 seed 两次调用逐项相同。
-
-ks_sample(params: dict, count: int, seed: int | None = None) -> list[float]
-# registry 统一签名；params 里必须有 "n"（样本量）。
-```
-
-`REGISTRY["ks"]` 是 `Distribution(name="ks", params=[ParamSpec("n", 100)], sampler=ks_sample)`。
-
-## 坑与约束
-
-- **不能用 numpy**：这是作业硬要求，全部用标准库（`random`、`math`、`statistics`）。
-- **用 `py` 不用 `python`**：`python` 命中 Store 占位程序，静默退出（exit 49）；`py` 正常。
-- **练习脚本只能用 `py -m Practice.play` 跑**：直接 `py Practice/play.py` 时 `sys.path[0]` 是 `Practice/`，看不到同级的 `prob_sim/`，会 `ModuleNotFoundError`。不要用 `sys.path.append` 打补丁。
-- 包名 `Practice` 首字母大写是用户指定的写法，不按 PEP 8 小写惯例，别改。
-- 包目录名是 `prob_sim`（下划线），仓库目录名是 `prob-sim`（连字符）——连字符不能出现在 `import` 语句里。
-- 目录名用纯英文（`prob-sim`），避免中文路径在打包/命令行里出乱码。
-- Windows 下读文件要写 `encoding="utf-8"`，写 JSON 同理。
-- 采样逻辑只放模块顶层函数，模块级不要写会打印的代码（`import` 时会执行）。
-- `prob_sim/base.py` 不能 import `registry` 或 `ks`，否则循环导入。
+- 包名 `Practice` 首字母大写是刻意写法，不按 PEP 8 改。
+- 直接用 `py Practice/play.py` 会 `ModuleNotFoundError`；不要用 `sys.path.append` 打补丁。
+- 这里可以随便改、随便删，过期也不用留。
 
 ## 学习进度
 
