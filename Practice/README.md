@@ -7,7 +7,6 @@
 练习草稿区，不算交付物：
 
 - `basics.py` —— 第 1–4 天练习（`mean` / `median` / `describe`）
-- `gamma.py` —— 第 5 天的声明草稿（函数体 `raise NotImplementedError`）
 
 交付代码在上一层（`prob_sim/` + `cli.py`）；**文件地图、对外接口、运行方式、项目级坑**都在 [../README.md](../README.md)，这里不重复。
 
