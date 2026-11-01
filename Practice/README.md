@@ -6,17 +6,19 @@
 
 练习草稿区，不算交付物：
 
-- `play.py` —— 第 1–4 天练习（`mean` / `median` / `describe`）
+- `basics.py` —— 第 1–4 天练习（`mean` / `median` / `describe`）
 - `gamma.py` —— 第 5 天的声明草稿（函数体 `raise NotImplementedError`）
+- `demo_flask.py` —— 第 9 天：把样本点从 HTTP 吐出去（`/api/ks?n=50&count=7`）
+- `demo_xml.py` —— 第 9 天：把 `out/ks.json` 转成 `out/ks.xml`
 
 交付代码在上一层（`prob_sim/` + `cli.py`）；**文件地图、对外接口、运行方式、项目级坑**都在 [../README.md](../README.md)，这里不重复。
 
 ## 跑练习
 
-必须用 `-m`，且当前目录是 `prob-sim/`（直接 `py Practice/play.py` 会因为找不到 `prob_sim` 包报错）：
+必须用 `-m`，且当前目录是 `prob-sim/`（直接 `py Practice/basics.py` 会因为找不到 `prob_sim` 包报错）：
 
 ```bash
-py -m Practice.play
+py -m Practice.basics
 ```
 
 期望输出（`seed=123`，`n=100`，`m=1000`）：
@@ -29,10 +31,23 @@ py -m Practice.play
 最小: 0.03297
 ```
 
+## 跑 demo（第 9 天）
+
+```bash
+# A. HTTP 出 JSON：浏览器开 http://127.0.0.1:5000/api/ks?n=50&count=7
+py -m Practice.demo_flask
+
+# B. JSON → XML：先有 out/ks.json，产物在 out/ks.xml
+py -m Practice.demo_xml
+```
+
+`demo_flask.py` 依赖 `flask`（本机 3.1.3，`py -m pip install flask` 可补），其余仍是纯标准库。
+两个 demo 都只读注册表、不改 `prob_sim/`，算是给二期界面探路。
+
 ## 练习区约定
 
 - 包名 `Practice` 首字母大写是刻意写法，不按 PEP 8 改。
-- 直接用 `py Practice/play.py` 会 `ModuleNotFoundError`；不要用 `sys.path.append` 打补丁。
+- 直接用 `py Practice/basics.py` 会 `ModuleNotFoundError`；不要用 `sys.path.append` 打补丁。
 - 这里可以随便改、随便删，过期也不用留。
 
 ## 学习进度
@@ -78,7 +93,7 @@ py -m Practice.play
 ### 第 5 天（2026-10-27）：拆包
 
 **学了**：包 = 带 `__init__.py` 的目录；`import` 靠 `sys.path` 找模块，直接跑脚本时 `sys.path[0]` 是脚本所在目录；`@dataclass` 自动生成 `__init__`/`__repr__`；注册表模式（模块导入时把自己的采样器登记进 `REGISTRY`，调用方只认名字）。
-**写了**：`prob_sim/` 四个文件；`ks.py` 末尾登记 `REGISTRY["ks"]`；`play.py` 改为从包里 import。
+**写了**：`prob_sim/` 四个文件；`ks.py` 末尾登记 `REGISTRY["ks"]`；`basics.py` 改为从包里 import。
 **踩过的坑**：
 
 1. **文件建在仓库根**：`base.py`/`ks.py` 必须是 `prob_sim/` 目录里的文件，否则 `from prob_sim.ks import ...` 找不到。
@@ -86,7 +101,7 @@ py -m Practice.play
 3. **根目录残留 `__init__.py`**：会把整个仓库根当成包，导入路径混乱。
 4. **`from prob_sim import REGISTRY` 报 ImportError**：空的 `__init__.py` 不会导出子模块里的名字，要在 `__init__.py` 里显式 `from prob_sim.registry import REGISTRY`。
 
-**验证**：`list(REGISTRY) == ['ks']`；`len(simulate(50, 10, seed=1)) == 10`；`py -m Practice.play` 输出五行统计。
+**验证**：`list(REGISTRY) == ['ks']`；`len(simulate(50, 10, seed=1)) == 10`；`py -m Practice.basics` 输出五行统计。
 
 ### 第 6 天（2026-10-29）：cli + JSON 落盘
 
@@ -133,9 +148,9 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 
 ## 改动记录
 
-- 2026-10-23：创建 `prob-sim/Practice/`，写第 1 天练习 `play.py`（`mean` / `describe`），跑通输出 3.875。
-- 2026-10-23：用户手写 `play.py` 完成第 1 天任务；`mean`/`describe` 已改为使用参数而非全局变量，`describe([100,200])` 验证输出 2/200/100。
-- 2026-10-23：按约定重写 `play.py`——补 docstring、类型注解、`main()` 入口、`if __name__ == "__main__"` 保护，统一命名与空格；行为不变。
+- 2026-10-23：创建 `prob-sim/Practice/`，写第 1 天练习 `basics.py`（`mean` / `describe`），跑通输出 3.875。
+- 2026-10-23：用户手写 `basics.py` 完成第 1 天任务；`mean`/`describe` 已改为使用参数而非全局变量，`describe([100,200])` 验证输出 2/200/100。
+- 2026-10-23：按约定重写 `basics.py`——补 docstring、类型注解、`main()` 入口、`if __name__ == "__main__"` 保护，统一命名与空格；行为不变。
 - 2026-10-27：第 2 天加 `median()`；第 3 天加 `one_d()`；第 4 天加 `simulate()`（均用户手写，我审校）。
 - 2026-10-27：第 5 天拆出 `prob_sim/` 包（`__init__` / `base` / `registry` / `ks`）；修 `__init__.py` 未导出 `REGISTRY`、`ks.py` 导入位置与空格；README 补齐接口、运行方式与第 2–5 天学习进度。
 - 2026-10-29：加入第 8 天任务（mypy 静态检查 + pythontutor 变量可视化），排在第 6–7 天（cli + 校验）之后。
@@ -144,3 +159,4 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 - 2026-10-31：第 8 天 `test_ks.py`（三个断言，变异测试确认有效）；mypy 2.4.1；`--strict` 逼出 `ks.py:43` 的 `dict` 缺参数并修成 `dict[str, int]`。
 - 2026-10-31：解释器环境修复——用户 PATH 前置 Python314 目录、删除 WindowsApps 里的 Store 别名；README 同步说明。
 - 2026-11-01：一期收尾——全链路回归（n=50 / n=1000 的 D 中位数与 0.83/√n 吻合）、补项目级 `README.md`（文件地图/接口/坑/三个待解问题）、打 tag `v0.1.0`。第 9 天 `demo_flask.py` / `demo_xml.py` 未写（预习性质，不算交付）。
+- 2026-11-01：`play.py` 改名 `basics.py`（名字说明内容而非状态）；新增第 9 天两个 demo（`demo_flask.py` / `demo_xml.py`），均已实测跑通。

@@ -29,7 +29,7 @@
 | `prob_sim/__init__.py` | 导入即注册，并把 `REGISTRY` 提到包层 | `from prob_sim import REGISTRY` |
 | `cli.py` | 命令行入口：解析 → 采样 → 落盘 | `main`、`force_utf8_output` |
 | `test_ks.py` | 三个断言的最小测试 | — |
-| `Practice/` | 学习草稿区（`play.py` 等），**不是交付代码** | — |
+| `Practice/` | 学习草稿区（`basics.py` 等），**不是交付代码** | — |
 | `out/` | 输出目录，被 `.gitignore` 忽略 | — |
 
 ## 对外接口
