@@ -28,7 +28,7 @@ py -m Practice.basics
 最小: 0.03297
 ```
 
-## 第 9 天练习：两个 demo（待写）
+## 第 9 天练习：两个 demo（2026-11-01 完成）
 
 目标：证明样本点能“出境”的两条路（HTTP / XML）。只读注册表，**不改 `prob_sim/`**。
 
@@ -148,6 +148,21 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 
 **未做（可选）**：pythontutor 单步 `one_d(4)`。
 
+### 第 9 天（2026-11-01）：两条出口——HTTP 与 XML
+
+**学了**：Flask 的最小骨架（`@app.route` + 查询参数 + `jsonify`）、查询参数永远是字符串所以要显式 `int()`、400 与 500 的分工；`ElementTree` 四件套（`Element` / `SubElement` / `set` / `text`）、`.write(..., encoding="utf-8", xml_declaration=True)`；路径的三种写法（绝对、相对 cwd、`Path(__file__).parent`）以及 `mkdir(parents=True, exist_ok=True)`。
+
+**写了**：`demo_flask.py`（`GET /api/ks?n=&count=&seed=`）、`demo_xml.py`（采样 → 建树 → 写 `out/ks.xml` → 读回校验）。两份都补了注释，说明每一步"为什么"而不只是"做什么"。
+
+**踩过的坑**：
+
+1. **`SubElement` 写在循环外**：只建了一个 `<d>`，循环里反复改它，最后只剩最后一个值（`len(root) == 1`）。子节点是"每轮一个"，必须和 `set`/`text` 一起放进循环体。
+2. **`write()` 不给 `encoding`**：默认写 `us-ascii`，声明和实际内容口径不一致。
+3. **相对路径跟着 cwd 走**：同一个 `"test.xml"`，从 `prob-sim/` 跑和从 `Practice/` 跑落在两个不同目录。
+4. **`Path(__file__)` 只管写文件，不管 import**：在 `Practice/` 里 `py demo_xml.py` 仍会 `ModuleNotFoundError: No module named 'prob_sim'`——模块查找看的是 `sys.path`，所以还是得在 `prob-sim/` 根目录用 `-m`。
+
+**验证**：`/api/ks?n=100&count=5&seed=7` 返回 200 且 `samples` 长度 5、键名与 `cli.py` 一致；`n=abc` 返回 400 + 中文错误；同 seed 两次逐字节相同。`out/ks.xml` 解析后 `tag=ks`、`attrib={n:100,count:1000}`、`len(root)=1000`、每个 `<d>` 恰好 6 位小数。
+
 ## 改动记录
 
 - 2026-10-23：创建 `prob-sim/Practice/`，写第 1 天练习 `basics.py`（`mean` / `describe`），跑通输出 3.875。
@@ -163,3 +178,5 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 - 2026-11-01：一期收尾——全链路回归（n=50 / n=1000 的 D 中位数与 0.83/√n 吻合）、补项目级 `README.md`（文件地图/接口/坑/三个待解问题）、打 tag `v0.1.0`。第 9 天 `demo_flask.py` / `demo_xml.py` 未写（预习性质，不算交付）。
 - 2026-11-01：`play.py` 改名 `basics.py`（名字说明内容而非状态）；新增第 9 天两个 demo（`demo_flask.py` / `demo_xml.py`），均已实测跑通。
 - 2026-11-01：删掉我代写的两个 demo 草稿，README 第 9 天一节改为「任务要求 + 验收」；练习由一个写成一个审。
+- 2026-11-01：第 9 天 A 完成——`demo_flask.py` 键名统一为 `samples`，补注释；实测 200 / 400 / 同 seed 复现三种情形。
+- 2026-11-01：第 9 天 B 完成——`demo_xml.py` 修三个问题（`SubElement` 移进循环、根节点补属性、`write` 指定 utf-8），改用 `Path(__file__)` 定位输出，补读回校验与注释。`out/ks.xml` 1000 个子节点、全部 6 位小数。
