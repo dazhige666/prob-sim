@@ -8,8 +8,6 @@
 
 - `basics.py` —— 第 1–4 天练习（`mean` / `median` / `describe`）
 - `gamma.py` —— 第 5 天的声明草稿（函数体 `raise NotImplementedError`）
-- `demo_flask.py` —— 第 9 天：把样本点从 HTTP 吐出去（`/api/ks?n=50&count=7`）
-- `demo_xml.py` —— 第 9 天：把 `out/ks.json` 转成 `out/ks.xml`
 
 交付代码在上一层（`prob_sim/` + `cli.py`）；**文件地图、对外接口、运行方式、项目级坑**都在 [../README.md](../README.md)，这里不重复。
 
@@ -31,18 +29,23 @@ py -m Practice.basics
 最小: 0.03297
 ```
 
-## 跑 demo（第 9 天）
+## 第 9 天练习：两个 demo（待写）
 
-```bash
-# A. HTTP 出 JSON：浏览器开 http://127.0.0.1:5000/api/ks?n=50&count=7
-py -m Practice.demo_flask
+目标：证明样本点能“出境”的两条路（HTTP / XML）。只读注册表，**不改 `prob_sim/`**。
 
-# B. JSON → XML：先有 out/ks.json，产物在 out/ks.xml
-py -m Practice.demo_xml
-```
+**A. `demo_flask.py`**
 
-`demo_flask.py` 依赖 `flask`（本机 3.1.3，`py -m pip install flask` 可补），其余仍是纯标准库。
-两个 demo 都只读注册表、不改 `prob_sim/`，算是给二期界面探路。
+- 两个路由：`/` 返回一行 HTML；`/api/ks` 读查询参数 `n` / `count` / `seed`，调用 `REGISTRY["ks"].sampler(...)`，返回和 `out/ks.json` 同结构的 JSON
+- 验收：`py -m Practice.demo_flask` → 浏览器看 `http://127.0.0.1:5000/api/ks?n=50&count=7`，`samples` 有 7 个
+- 三个坑：5000 被占就换端口；`debug=True` 会开两个进程；查询参数永远是字符串，`int()` 失败要给 400 而不是 500
+
+**B. `demo_xml.py`**
+
+- 读 `out/ks.json`，用 `xml.etree.ElementTree` 写成 `<ks n=.. count=.. seed=..><d i="1">0.072026</d>...</ks>`
+- 验收：`ET.parse("out/ks.xml")` 的根 `tag == "ks"`，`len(root)` 等于样本数
+- 坑：节点文本只能存字符串，浮点要 `f"{x:.6f}"`；写文件要指定 `encoding="utf-8"`
+
+依赖：A 需要 `flask`（本机 3.1.3 已装），其余纯标准库。
 
 ## 练习区约定
 
@@ -160,3 +163,4 @@ prob_sim\ks.py:43: error: Missing type arguments for generic type "dict"  [type-
 - 2026-10-31：解释器环境修复——用户 PATH 前置 Python314 目录、删除 WindowsApps 里的 Store 别名；README 同步说明。
 - 2026-11-01：一期收尾——全链路回归（n=50 / n=1000 的 D 中位数与 0.83/√n 吻合）、补项目级 `README.md`（文件地图/接口/坑/三个待解问题）、打 tag `v0.1.0`。第 9 天 `demo_flask.py` / `demo_xml.py` 未写（预习性质，不算交付）。
 - 2026-11-01：`play.py` 改名 `basics.py`（名字说明内容而非状态）；新增第 9 天两个 demo（`demo_flask.py` / `demo_xml.py`），均已实测跑通。
+- 2026-11-01：删掉我代写的两个 demo 草稿，README 第 9 天一节改为「任务要求 + 验收」；练习由一个写成一个审。
