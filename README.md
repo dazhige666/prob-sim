@@ -114,3 +114,5 @@ python -m mypy --strict prob_sim cli.py test_ks.py
 | 2026-10-29 | 第 6 天：`cli.py` + JSON 落盘 |
 | 2026-10-31 | 第 7 天参数校验；第 8 天测试 + mypy；环境修复（PATH、Store 别名） |
 | 2026-11-01 | 一期收尾：全链路回归、补本 README、打 tag `v0.1.0` |
+| 2026-11-01 | 第 9 天预习：`Practice/demo_flask.py`（HTTP 出口）、`Practice/demo_xml.py`（XML 出口，含读回校验） |
+| 2026-11-01 | 第 10 天复盘：回归 n=50/1000 中位数与 0.83/√n 吻合（2.3% / 0.4%），`mypy --strict` 5 文件通过 |
